@@ -28,7 +28,7 @@ namespace TeamKill_Discord_Bot.Modules
             sb.AppendLine();
 
             // Let's make sure the supplied arguments aren't null
-            if(args == null)
+            if (args == null)
             {
                 // If no arguments were passed (args are null), reply with the below text
                 sb.AppendLine("Desculpa, não percebi isso.");
@@ -39,7 +39,7 @@ namespace TeamKill_Discord_Bot.Modules
                 string[] splitArgs = args.Split(' ');
 
                 // Check if we have 3 arguments
-                if(splitArgs.Length == 3)
+                if (splitArgs.Length == 3)
                 {
                     ulong userToTeamKill, userToGetTeamKilled;
                     string userToTeamKillRegex, userToGetTeamKilledRegex;
@@ -49,7 +49,8 @@ namespace TeamKill_Discord_Bot.Modules
                     userToGetTeamKilledRegex = Regex.Match(splitArgs[1], @"\d+").Value;
 
                     // Check if both user id's were passed
-                    if (userToTeamKillRegex != null && userToGetTeamKilledRegex != null) {
+                    if (userToTeamKillRegex != null && userToGetTeamKilledRegex != null)
+                    {
                         // Parse the id's to ulongs
                         userToTeamKill = ulong.Parse(userToTeamKillRegex);
                         userToGetTeamKilled = ulong.Parse(userToGetTeamKilledRegex);
@@ -67,7 +68,7 @@ namespace TeamKill_Discord_Bot.Modules
 
                             await Task.WhenAll(userToTeamKillExists, userToGetTeamKilledExists);
 
-                            if(userToTeamKillExists.Result != null && userToGetTeamKilledExists.Result != null)
+                            if (userToTeamKillExists.Result != null && userToGetTeamKilledExists.Result != null)
                             {
                                 int newTeamKillCounter, currentKillCounter = 0;
 
@@ -194,7 +195,7 @@ namespace TeamKill_Discord_Bot.Modules
                                     teamKills.SetTeamKills(new TeamKill(userToTeamKill, userToGetTeamKilled, newTeamKillCounter));
 
                                     // Check if there's any team kills left
-                                    if(newTeamKillCounter <= 0)
+                                    if (newTeamKillCounter <= 0)
                                     {
                                         sb.AppendLine("Não têm mais Team Kills a dar!");
                                     }
@@ -225,6 +226,41 @@ namespace TeamKill_Discord_Bot.Modules
                     sb.AppendLine("Têm que ser passados 3 argumentos");
                 }
 
+            }
+
+            // Now we can assign the description of the embed to the contents of the StringBuilder we created
+            embed.Description = sb.ToString();
+
+            // This will reply with the embed
+            await ReplyAsync(null, false, embed.Build());
+        }
+
+        [Command("tklist")]
+        public async Task ShowAllTeamKillsCommand()
+        {
+            // Initialize empty string builder for reply
+            var sb = new StringBuilder();
+
+            // Initialize embed builder to reply with an embed
+            var embed = new EmbedBuilder();
+
+            // Build out the reply
+            sb.AppendLine($"{Context.User.Username}, a seguir listam todas as Team Kills a serem cobradas:");
+            sb.AppendLine();
+
+            var allTeamKills = teamKills.GetTeamKills();
+
+            // Check if there's any team kills
+            if(allTeamKills.Count > 0)
+            {
+                foreach(TeamKill teamKill in allTeamKills)
+                {
+                    sb.AppendLine($"[<@{teamKill.UserToTeamKill}>] -> [<@{teamKill.UserToGetTeamKilled}>] : {teamKill.TeamKills} Team Kill(s)");
+                }
+            }
+            else
+            {
+                sb.AppendLine("Não existem Team Kills :(");
             }
 
             // Now we can assign the description of the embed to the contents of the StringBuilder we created

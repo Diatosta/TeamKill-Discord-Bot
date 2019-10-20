@@ -26,9 +26,9 @@ namespace TeamKill_Discord_Bot.TeamKillsData
             }
         }
 
-        public int GetTeamKills()
+        public List<TeamKill> GetTeamKills()
         {
-            return _teamKills.Count;
+            return _teamKills;
         }
 
         public int GetTeamKillsWithUsers(ulong UserToTeamKill, ulong UserToGetTeamKilled)

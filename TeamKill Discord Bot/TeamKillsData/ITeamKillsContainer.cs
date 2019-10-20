@@ -6,6 +6,8 @@ namespace TeamKill_Discord_Bot.TeamKillsData
 {
     public interface ITeamKillsContainer
     {
-        int GetTeamKills();
+        List<TeamKill> GetTeamKills();
+        int GetTeamKillsWithUsers(ulong UserToTeamKill, ulong UserToGetTeamKilled);
+        void SetTeamKills(TeamKill teamKill);
     }
 }
