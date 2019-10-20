@@ -31,7 +31,7 @@ namespace TeamKill_Discord_Bot.TeamKillsData
             return _teamKills.Count;
         }
 
-        public int GetTeamKillsWithUsers(string UserToTeamKill, string UserToGetTeamKilled)
+        public int GetTeamKillsWithUsers(ulong UserToTeamKill, ulong UserToGetTeamKilled)
         {
             // Get the team kill in the list that matches if it exists
             var tk = _teamKills.FirstOrDefault(x => x.UserToTeamKill == UserToTeamKill && x.UserToGetTeamKilled == UserToGetTeamKilled);

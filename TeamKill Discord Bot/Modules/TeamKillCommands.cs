@@ -3,6 +3,7 @@ using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TeamKill_Discord_Bot.TeamKillsData;
 
@@ -40,27 +41,68 @@ namespace TeamKill_Discord_Bot.Modules
                 // Check if we have 3 arguments
                 if(splitArgs.Length == 3)
                 {
-                    // Check if the last argument is an integer and get it
-                    int teamKillsNumber;
-                    if (int.TryParse(splitArgs[2], out teamKillsNumber))
+                    ulong userToTeamKill, userToGetTeamKilled;
+                    string userToTeamKillRegex, userToGetTeamKilledRegex;
+
+                    // Get the users id's from the mentions
+                    userToTeamKillRegex = Regex.Match(splitArgs[0], @"\d+").Value;
+                    userToGetTeamKilledRegex = Regex.Match(splitArgs[1], @"\d+").Value;
+
+                    // Check if both user id's were passed
+                    if (userToTeamKillRegex != null && userToGetTeamKilledRegex != null) {
+                        // Parse the id's to ulongs
+                        userToTeamKill = ulong.Parse(userToTeamKillRegex);
+                        userToGetTeamKilled = ulong.Parse(userToGetTeamKilledRegex);
+
+                        // Check if the last argument is an integer and get it
+                        int teamKillsNumber;
+                        if (int.TryParse(splitArgs[2], out teamKillsNumber))
+                        {
+                            // If we have the arguments, let's reply!
+                            sb.AppendLine($"Pediste para adicionar {teamKillsNumber} Team Kills de <@{userToTeamKill}> para <@{userToGetTeamKilled}>");
+
+                            // Check if the passed users exist in the server
+                            var userToTeamKillExists = Context.Guild.GetUserAsync(userToTeamKill);
+                            var userToGetTeamKilledExists = Context.Guild.GetUserAsync(userToGetTeamKilled);
+
+                            await Task.WhenAll(userToTeamKillExists, userToGetTeamKilledExists);
+
+                            if(userToTeamKillExists.Result != null && userToGetTeamKilledExists.Result != null)
+                            {
+                                int newTeamKillCounter, currentKillCounter = 0;
+
+                                // Get the current team kill counter
+                                try
+                                {
+                                    currentKillCounter = teamKills.GetTeamKillsWithUsers(userToTeamKill, userToGetTeamKilled);
+
+                                }
+                                catch (KeyNotFoundException ex)
+                                {
+                                    Console.WriteLine($"The record for {splitArgs[0]} <-> {splitArgs[1]} was not found!");
+                                }
+                                finally
+                                {
+                                    newTeamKillCounter = currentKillCounter + teamKillsNumber;
+
+                                    teamKills.SetTeamKills(new TeamKill(userToTeamKill, userToGetTeamKilled, newTeamKillCounter));
+
+                                    sb.AppendLine($"Agora têm {newTeamKillCounter} Team Kills restantes!");
+                                }
+                            }
+                            else
+                            {
+                                sb.Append("O utilizador a matar ou o que irá matar não existem neste servidor!");
+                            }
+                        }
+                        else
+                        {
+                            sb.AppendLine("O numero de Team Kills deve ser um numero inteiro!");
+                        }
+                    }
+                    else
                     {
-                        // If we have the arguments, let's reply!
-                        sb.AppendLine($"Pediste para subtrair {teamKillsNumber} Team Kills de {splitArgs[0]} para {splitArgs[1]}");
-
-                        // Get the current team kill counter
-                        try
-                        {
-                            int newTeamKillCounter = teamKills.GetTeamKillsWithUsers(splitArgs[0], splitArgs[1]) + teamKillsNumber;
-
-                            teamKills.SetTeamKills(new TeamKill(splitArgs[0], splitArgs[1], newTeamKillCounter));
-
-                            sb.AppendLine($"Agora têm {newTeamKillCounter} Team Kills restantes!");
-
-                        }
-                        catch (KeyNotFoundException ex)
-                        {
-                            Console.WriteLine($"The record for {splitArgs[0]} <-> {splitArgs[1]} was not found!");
-                        }
+                        sb.AppendLine("O utilizador a ser morto ou o a matar devem ser uma menção!");
                     }
                 }
                 else
@@ -104,34 +146,78 @@ namespace TeamKill_Discord_Bot.Modules
                 // Check if we have 3 arguments
                 if (splitArgs.Length == 3)
                 {
-                    // Check if the last argument is an integer and get it
-                    int teamKillsNumber;
-                    if (int.TryParse(splitArgs[2], out teamKillsNumber))
+                    ulong userToTeamKill, userToGetTeamKilled;
+                    string userToTeamKillRegex, userToGetTeamKilledRegex;
+
+                    // Get the users id's from the mentions
+                    userToTeamKillRegex = Regex.Match(splitArgs[0], @"\d+").Value;
+                    userToGetTeamKilledRegex = Regex.Match(splitArgs[1], @"\d+").Value;
+
+                    // Check if both user id's were passed
+                    if (userToTeamKillRegex != null && userToGetTeamKilledRegex != null)
                     {
-                        // If we have the arguments, let's reply!
-                        sb.AppendLine($"Pediste para subtrair {teamKillsNumber} Team Kills de {splitArgs[0]} para {splitArgs[1]}");
+                        // Parse the id's to ulongs
+                        userToTeamKill = ulong.Parse(userToTeamKillRegex);
+                        userToGetTeamKilled = ulong.Parse(userToGetTeamKilledRegex);
 
-                        // Get the current team kill counter
-                        try
+                        // Check if the last argument is an integer and get it
+                        int teamKillsNumber;
+                        if (int.TryParse(splitArgs[2], out teamKillsNumber))
                         {
-                            int newTeamKillCounter = teamKills.GetTeamKillsWithUsers(splitArgs[0], splitArgs[1]) - teamKillsNumber;
-                            
-                            teamKills.SetTeamKills(new TeamKill(splitArgs[0], splitArgs[1], newTeamKillCounter));
+                            // If we have the arguments, let's reply!
+                            sb.AppendLine($"Pediste para subtrair {teamKillsNumber} Team Kills de <@{userToTeamKill}> para <@{userToGetTeamKilled}>");
 
-                            if (newTeamKillCounter <= 0)
+                            // Check if the passed users exist in the server
+                            var userToTeamKillExists = Context.Guild.GetUserAsync(userToTeamKill);
+                            var userToGetTeamKilledExists = Context.Guild.GetUserAsync(userToGetTeamKilled);
+
+                            await Task.WhenAll(userToTeamKillExists, userToGetTeamKilledExists);
+
+                            if (userToTeamKillExists.Result != null && userToGetTeamKilledExists.Result != null)
                             {
-                                sb.AppendLine($"Não há mais Team Kills restantes!");
+                                int newTeamKillCounter, currentKillCounter = 0;
+
+                                // Get the current team kill counter
+                                try
+                                {
+                                    currentKillCounter = teamKills.GetTeamKillsWithUsers(userToTeamKill, userToGetTeamKilled);
+
+                                }
+                                catch (KeyNotFoundException ex)
+                                {
+                                    Console.WriteLine($"The record for {splitArgs[0]} <-> {splitArgs[1]} was not found!");
+                                }
+                                finally
+                                {
+                                    newTeamKillCounter = currentKillCounter - teamKillsNumber;
+
+                                    teamKills.SetTeamKills(new TeamKill(userToTeamKill, userToGetTeamKilled, newTeamKillCounter));
+
+                                    // Check if there's any team kills left
+                                    if(newTeamKillCounter <= 0)
+                                    {
+                                        sb.AppendLine("Não têm mais Team Kills a dar!");
+                                    }
+                                    else
+                                    {
+                                        sb.AppendLine($"Agora têm {newTeamKillCounter} Team Kills restantes!");
+                                    }
+
+                                }
                             }
                             else
                             {
-                                sb.AppendLine($"Agora têm {newTeamKillCounter} Team Kills restantes!");
+                                sb.Append("O utilizador a matar ou o que irá matar não existem neste servidor!");
                             }
-
                         }
-                        catch (KeyNotFoundException ex)
+                        else
                         {
-                            Console.WriteLine($"The record for {splitArgs[0]} <-> {splitArgs[1]} was not found!");
-                        }                        
+                            sb.AppendLine("O numero de Team Kills deve ser um numero inteiro!");
+                        }
+                    }
+                    else
+                    {
+                        sb.AppendLine("O utilizador a ser morto ou o a matar devem ser uma menção!");
                     }
                 }
                 else
